@@ -1,0 +1,21 @@
+{
+  "name": "webshop-api-ecommerce_claes-distribution",
+  "version": "2.0.0",
+  "author": "Jamie Vangeysel",
+  "license": "MIT",
+  "scripts": {
+    "test": "tap --reporter=list --show-full-coverage"
+  },
+  "dependencies": {
+    "@groupclaes/fastify-elastic": "^4.2.1",
+    "@groupclaes/oe-connector": "^1.2.5",
+    "fastify": "^4.25.1",
+    "jose": "^5.1.3",
+    "mssql": "^10.0.1"
+  },
+  "devDependencies": {
+    "@types/mssql": "^9.1.4",
+    "@types/node": "^20.10.5",
+    "tap": "^18.6.1"
+  }
+}

@@ -1,0 +1,13 @@
+#deps folder
+node_modules/
+
+#misc files
+LICENSE
+readme.md
+
+#deps def
+package-lock.json
+
+.dockerignore
+Dockerfile
+config.js
