@@ -1,11 +1,18 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { JWTPayload } from 'jose'
 import sql from 'mssql'
 
-import Ecommerce from '../repositories/ecommerce.repository'
+import Dashboard from '../repositories/dashboard.repository'
 
 declare module 'fastify' {
   export interface FastifyInstance {
     getSqlPool: (name?: string) => Promise<sql.ConnectionPool>
+  }
+  
+  export interface FastifyRequest {
+    jwt: JWTPayload
+    hasRole: (role: string) => boolean
+    hasPermission: (permission: string, scope?: string) => boolean
   }
 
   export interface FastifyReply {
@@ -16,35 +23,51 @@ declare module 'fastify' {
 }
 
 export default async function (fastify: FastifyInstance) {
-  fastify.get('', async function (request: FastifyRequest<{
+  fastify.get('', async (request: FastifyRequest<{
     Querystring: {
-      userCode?: number
+      usercode: number
+      culture?: string
     }
-  }>, reply: FastifyReply) {
+  }>, reply: FastifyReply) => {
     try {
-      if (!request.query.userCode || isNaN(+request.query.userCode))
-        return reply.fail({ userCode: 'supplied value is invalid' })
+      if (!request.jwt)
+        return reply.error('missing jwt!', 401)
 
       const pool = await fastify.getSqlPool()
-      const repo = new Ecommerce(request.log, pool)
-      // const userInfo = await repo.getUsercodeInfo(+request.query.userCode)
+      const repo = new Dashboard(request.log, pool)
+      const culture = request.query.culture ?? 'nl'
 
-      const news = await repo.getDashboardNewsItems(+request.query.userCode)
-      const result = await repo.getDashboardProducts(+request.query.userCode)
+      const user = await repo.getUserInfo(request.jwt.sub)
+      let canViewPrices = false
+      // if (user)
+      //   canViewPrices = user.user_type === 2 || user.user_type === 3
+      // all users can view prices
+      canViewPrices = true
 
-      request.log.debug({ result }, 'we received a response from db!')
+      const dashboard: any[] | undefined = await repo.get(request.query.usercode, request.jwt.sub, culture)
 
-      return reply.success({
-        news,
-        spotlight: result.spotlight,
-        recent: result.recent,
-        newP: result.newP,
-        bestSelling: result.bestSelling,
-        favorites: result.favorites
-      })
+      if (!dashboard)
+        return reply.success(undefined, 204)
+
+      const blocks = dashboard.map(x => x[0])
+      if (!canViewPrices) {
+        for (const list of blocks) {
+          if (!list.products) continue
+          for (const product of list.products) {
+            product.prices?.forEach(price => {
+              price.base = 0
+              delete price.amount
+              delete price.discount
+              delete price.quantity
+            })
+          }
+        }
+      }
+
+      return reply.success({ blocks })
     } catch (err) {
-      request.log.error({ err }, 'error while retrieving dashboard page')
-      return reply.error(err?.message)
+      request.log.error({ error: err }, 'failed to get dashboard')
+      return reply.error('failed to get dashboard')
     }
   })
 }
