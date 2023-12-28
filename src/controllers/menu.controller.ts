@@ -30,7 +30,8 @@ export default async function (fastify: FastifyInstance) {
     }
   }>, reply: FastifyReply) => {
     try {
-      const repo = new Categories()
+      const pool = await fastify.getSqlPool()
+      const repo = new Categories(request.log, pool)
       const culture = request.query.culture ?? 'nl'
 
       const data = await repo.getTree(request.query.usercode, request.jwt?.sub, culture)
