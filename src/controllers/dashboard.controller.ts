@@ -8,7 +8,7 @@ declare module 'fastify' {
   export interface FastifyInstance {
     getSqlPool: (name?: string) => Promise<sql.ConnectionPool>
   }
-  
+
   export interface FastifyRequest {
     jwt: JWTPayload
     hasRole: (role: string) => boolean
@@ -38,19 +38,13 @@ export default async function (fastify: FastifyInstance) {
       const culture = request.query.culture ?? 'nl'
 
       const user = await repo.getUserInfo(request.jwt.sub)
-      let canViewPrices = false
-      // if (user)
-      //   canViewPrices = user.user_type === 2 || user.user_type === 3
-      // all users can view prices
-      canViewPrices = true
-
       const dashboard: any[] | undefined = await repo.get(request.query.usercode, request.jwt.sub, culture)
 
       if (!dashboard)
         return reply.success(undefined, 204)
 
       const blocks = dashboard.map(x => x[0])
-      if (!canViewPrices) {
+      if (user === undefined || !user?.can_view_prices) {
         for (const list of blocks) {
           if (!list.products) continue
           for (const product of list.products) {
