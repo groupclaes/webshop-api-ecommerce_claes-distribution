@@ -23,7 +23,7 @@ export default class ReportRepository {
     if (!result)
       return []
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_getReports result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_getReports result`)
 
     return result.recordset.length > 0 ? result.recordset[0] : []
   }
@@ -40,13 +40,38 @@ export default class ReportRepository {
     if (!result)
       return []
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_getRecentReports result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_getRecentReports result`)
 
     return result.recordset.length > 0 ? result.recordset[0] : []
   }
 
-  async createQueuedReport(usercode: number, id: number, mode: string, type: string, user_id?: string, culture: string = 'nl'): Promise<boolean> {
+  async createQueuedReport(usercode: number, id: number, mode: string, type: string, user_id?: string, culture: string = 'nl'): Promise<any> {
+    const r = new sql.Request(this._pool)
+    r.input('id', sql.Int, id)
+    r.input('mode', sql.VarChar, mode)
+    r.input('type', sql.VarChar, type)
+    r.input('usercode', sql.Int, usercode)
+    r.input('culture', sql.VarChar, culture)
+    const result = await r.execute(this.schema + 'usp_createQueuedReport').catch(err => {
+      this._logger.error({ err }, 'error while executing sql procedure')
+    })
 
+    if (!result)
+      return false
+
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_createQueuedReport result`)
+
+    if (result.rowsAffected[0] > 0) {
+      const report = result.recordset[0]
+      if (report)
+        return {
+          uuid: report.uuid.toLowerCase(),
+          uri: report.uri
+        }
+      return undefined
+    } else {
+      return new Error('Error while creating new queued report record in database')
+    }
   }
 
   async readQueuedReport(usercode: number, uuid: string, user_id?: string, culture: string = 'nl'): Promise<any> {
@@ -66,7 +91,7 @@ export default class ReportRepository {
     if (!result)
       return false
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_deleteQueuedReport result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_deleteQueuedReport result`)
 
     return result.rowsAffected[0] > 0
   }
@@ -84,9 +109,8 @@ export default class ReportRepository {
     if (!result)
       return false
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_updateQueuedReport result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_updateQueuedReport result`)
 
     return result.rowsAffected[0] > 0
   }
 }
-

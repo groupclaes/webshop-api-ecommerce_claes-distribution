@@ -12,7 +12,6 @@ export default class DepartmentRepository {
   }
 
   // Naming done by using CRUDL; create, read, update, delete and list
-
   async list(usercode: number, user_id?: string, culture: string = 'nl'): Promise<any[]> {
     const r = new sql.Request(this._pool)
     r.input('user_id', sql.Int, user_id)
