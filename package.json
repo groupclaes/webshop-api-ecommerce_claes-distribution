@@ -10,6 +10,7 @@
     "@groupclaes/fastify-elastic": "^4.2.1",
     "@groupclaes/oe-connector": "^1.2.5",
     "fastify": "^4.25.1",
+    "httpntlm": "^1.8.13",
     "jose": "^5.1.3",
     "mssql": "^10.0.1"
   },
