@@ -85,7 +85,7 @@ export default async function (fastify: FastifyInstance) {
   })
 
   /**
-   * Get a list of all reports requested by the current user in tha last x days
+   * Get a queued report result, when the report is still being processed return 4xx code 
    * @route GET /api/{APP_VERSION}/ecommerce/reports/queue/:uuid
    */
   fastify.get('/queue/:uuid', async (request: FastifyRequest<{
@@ -125,11 +125,13 @@ export default async function (fastify: FastifyInstance) {
   })
 
   /**
-   * Get all departments for current user
+   * Request a report to be queued
    * @route POST /api/{APP_VERSION}/ecommerce/reports/:id/queue
    */
   fastify.get('/queue', async (request: FastifyRequest<{
-    Querystring: {
+    Params: {
+      id: number
+    }, Querystring: {
       usercode: number
     }, Body: {
       name: string
@@ -144,9 +146,9 @@ export default async function (fastify: FastifyInstance) {
       const usercode = +request.query.usercode
       const department = request.body
 
-      request.log.debug({}, 'create department')
-      const data = await repo.create(usercode, department, request.jwt.sub)
-      return reply.success(data)
+      request.log.debug({}, 'queue report')
+      // const data = await repo.createQueuedReport(usercode, department, request.jwt.sub)
+      // return reply.success(data)
     } catch (err) {
       request.log.error({ err }, 'Failed to create department in database')
       return reply.error('failed to fetch create in database')
