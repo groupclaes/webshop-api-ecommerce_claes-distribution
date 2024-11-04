@@ -117,7 +117,7 @@ export default async function (fastify: FastifyInstance) {
           .type(data.mimeType)
           .send(data.content)
       }
-      return reply.fail({ progress: 'The requested report is not available yet.'})
+      return reply.fail({ progress: 'The requested report is not available yet.' })
     } catch (err) {
       request.log.error({ err }, 'Failed to fetch queued report from database')
       return reply.error('failed to fetch rqueued report from database')
