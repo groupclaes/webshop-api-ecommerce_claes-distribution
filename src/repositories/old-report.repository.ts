@@ -1,6 +1,6 @@
 import sql from 'mssql'
 import { FastifyBaseLogger } from 'fastify'
-const config = require('../config')
+const config = require('./config')
 const fetch = require('httpntlm')
 
 export default class OldReportRepository {
