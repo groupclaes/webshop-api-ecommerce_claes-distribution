@@ -11,6 +11,7 @@ export default async function (config: any): Promise<FastifyInstance | undefined
   if (!config || !config.wrapper) return
 
   const fastify = await Fastify(config.wrapper)
+  fastify.log.level = LOGLEVEL
   const version_prefix = '/api' + (env.APP_VERSION ? '/' + env.APP_VERSION : '')
   fastify.log.debug(`registering controller 'dashboard' for url '${version_prefix}/${config.wrapper.serviceName}/dashboard'`)
   await fastify.register(dashboardController, { prefix: `${version_prefix}/${config.wrapper.serviceName}/dashboard`, logLevel: LOGLEVEL })
