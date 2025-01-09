@@ -4,18 +4,6 @@ import sql from 'mssql'
 
 import ReportRepository from '../repositories/old-report.repository'
 
-declare module 'fastify' {
-  export interface FastifyInstance {
-    getSqlPool: (name?: string) => Promise<sql.ConnectionPool>
-  }
-
-  export interface FastifyReply {
-    success: (data?: any, code?: number, executionTime?: number) => FastifyReply
-    fail: (data?: any, code?: number, executionTime?: number) => FastifyReply
-    error: (message?: string, code?: number, executionTime?: number) => FastifyReply
-  }
-}
-
 export default async function (fastify: FastifyInstance) {
   /**
    * Get a list of all available reports the current user can request

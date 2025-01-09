@@ -4,24 +4,6 @@ import sql from 'mssql'
 
 import Categories from '../repositories/categories.repository'
 
-declare module 'fastify' {
-  export interface FastifyInstance {
-    getSqlPool: (name?: string) => Promise<sql.ConnectionPool>
-  }
-
-  export interface FastifyRequest {
-    jwt: JWTPayload
-    hasRole: (role: string) => boolean
-    hasPermission: (permission: string, scope?: string) => boolean
-  }
-
-  export interface FastifyReply {
-    success: (data?: any, code?: number, executionTime?: number) => FastifyReply
-    fail: (data?: any, code?: number, executionTime?: number) => FastifyReply
-    error: (message?: string, code?: number, executionTime?: number) => FastifyReply
-  }
-}
-
 export default async function (fastify: FastifyInstance) {
   fastify.get('', async (request: FastifyRequest<{
     Querystring: {
@@ -29,13 +11,15 @@ export default async function (fastify: FastifyInstance) {
       culture?: string
     }
   }>, reply: FastifyReply) => {
+    const start = performance.now()
+
     try {
       const pool = await fastify.getSqlPool()
       const repo = new Categories(request.log, pool)
       const culture = request.query.culture ?? 'nl'
 
       const data = await repo.getTree(request.query.usercode, request.jwt?.sub, culture)
-      return reply.success(data)
+      return reply.success(data, 200, performance.now() - start)
     } catch (err) {
       return reply.error('failed to get categories tree from database')
     }
