@@ -11,13 +11,15 @@ export default class StatisticsRepository {
     this._pool = pool
   }
 
-  async add(payload: IStatisticPayload): Promise<boolean> {
+  async add(payload: IStatisticPayload, token?: string): Promise<boolean> {
     const r = new sql.Request(this._pool)
     r.input('event_id', sql.TinyInt, payload.ev)
     if (payload.uid)
       r.input('user_id', sql.Int, payload.uid)
     if (payload.pr1id)
       r.input('product_id', sql.Int, payload.pr1id)
+    if (token)
+      r.input('token', sql.VarChar, token)
     const result = await r.execute(this.schema + 'usp_addStatistic').catch(err => {
       this._logger.error({ err }, 'error while executing sql procedure')
     })
