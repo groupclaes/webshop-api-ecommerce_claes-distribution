@@ -4,9 +4,9 @@ import StatisticsRepository, { IStatisticPayload } from 'src/repositories/statis
 export default async function (fastify: FastifyInstance) {
   /**
    * Get a list of all available reports the current user can request
-   * @route GET /api/{APP_VERSION}/ecommerce/reports
+   * @route POST /api/{APP_VERSION}/ecommerce/statistics
    */
-  fastify.get('', async (request: FastifyRequest<{
+  fastify.post('', async (request: FastifyRequest<{
     Body: IStatisticPayload
   }>, reply: FastifyReply) => {
     const start = performance.now()
