@@ -95,7 +95,7 @@ export default class OldReportRepository {
         request.input('customerId', sql.Int, customerId)
         request.input('addressId', sql.Int, addressId)
         request.input('culture', sql.VarChar, culture)
-        const result = await request.query(`QueueReport`)
+        const result = await request.execute(`QueueReport`)
         if (result.recordset.length > 0) {
           const report = result.recordset[0]
           resolve({
@@ -120,7 +120,7 @@ export default class OldReportRepository {
         const request = new sql.Request(this._pool)
         request.input('uuid', sql.UniqueIdentifier, uuid)
         request.input('userCode', sql.Int, userCode)
-        const result = await request.query(`GetQueuedReport`)
+        const result = await request.execute(`GetQueuedReport`)
         if (result.recordset.length > 0) {
           const report = result.recordset[0]
           resolve({
@@ -148,7 +148,7 @@ export default class OldReportRepository {
         const request = new sql.Request(this._pool)
         request.input('uuid', sql.UniqueIdentifier, uuid)
         request.input('userCode', sql.Int, userCode)
-        const result = await request.query(`GetQueuedReportStatus`)
+        const result = await request.execute(`GetQueuedReportStatus`)
         if (result.recordset.length > 0) {
           const report = result.recordset[0]
           resolve({
@@ -172,7 +172,7 @@ export default class OldReportRepository {
         const request = new sql.Request(this._pool)
         request.input('uuid', sql.UniqueIdentifier, uuid)
         request.input('userCode', sql.Int, userCode)
-        const result = await request.query(`DeleteQueuedReport`)
+        const result = await request.execute(`DeleteQueuedReport`)
         if (result.recordset.length > 0) {
           const report = result.recordset[0]
           resolve({

@@ -11,7 +11,7 @@ export default async function (fastify: FastifyInstance) {
    */
   fastify.get('', async (request: FastifyRequest<{
     Querystring: {
-      usercode: number,
+      usercode?: number
       customer_id?: number,
       address_id?: number,
       culture?: string
@@ -20,13 +20,13 @@ export default async function (fastify: FastifyInstance) {
     try {
       const pool = await fastify.getSqlPool()
       const repo = new ReportRepository(request.log, pool)
-      const usercode = +request.query.usercode
+      const usercode = request.query.usercode
       const customer_id = request.query.customer_id || 0
       const address_id = request.query.address_id || 0
       const culture = request.query.culture ?? 'nl'
 
       request.log.debug({}, 'fetching reports')
-      const data = await repo.getAll(usercode, +customer_id, +address_id)
+      const data = await repo.getAll(usercode, customer_id, address_id)
 
       request.log.debug({ reports_length: data?.length }, 'fetched reports')
       return reply.success(data)
@@ -42,14 +42,14 @@ export default async function (fastify: FastifyInstance) {
    */
   fastify.get('/list', async (request: FastifyRequest<{
     Querystring: {
-      usercode: number
+      usercode?: number
       culture?: string
     }
   }>, reply: FastifyReply) => {
     try {
       const pool = await fastify.getSqlPool()
       const repo = new ReportRepository(request.log, pool)
-      const usercode = +request.query.usercode
+      const usercode = request.query.usercode
       const culture = request.query.culture ?? 'nl'
 
       request.log.debug({}, 'fetching requested reports history')
@@ -71,7 +71,7 @@ export default async function (fastify: FastifyInstance) {
     Params: {
       uuid: string
     }, Querystring: {
-      usercode: number
+      usercode?: number
       culture?: string
     }
   }>, reply: FastifyReply) => {
@@ -79,21 +79,25 @@ export default async function (fastify: FastifyInstance) {
       const pool = await fastify.getSqlPool()
       const repo = new ReportRepository(request.log, pool)
       const uuid = request.params.uuid
-      const usercode = +request.query.usercode
+      const usercode = request.query.usercode
       const culture = request.query.culture ?? 'nl'
 
       request.log.debug({}, 'fetching queued report')
-      const data = await repo.getQueuedReport(uuid, usercode)
-
-      request.log.debug('fetched queued report')
-      if (data.completionTime) {
-        return reply
-          .code(200)
-          .header('Content-disposition', 'attachment; filename*=UTF-8\'\'' + encodeURI(data.filename))
-          .type(data.mimeType)
-          .send(data.content)
+      try {
+        const data = await repo.getQueuedReport(uuid, usercode)
+        if (data.completionTime) {
+          return reply
+            .code(200)
+            .header('Content-disposition', 'attachment; filename*=UTF-8\'\'' + encodeURI(data.filename))
+            .type(data.mimeType)
+            .send(data.content)
+        }
+      } catch (err) {
+        if (err?.message === 'Not completed')
+          return reply.fail({ progress: 'The requested report is not available yet.' })
       }
-      return reply.fail({ progress: 'The requested report is not available yet.' })
+
+      throw new Error('Whoops?')
     } catch (err) {
       request.log.error({ err }, 'Failed to fetch queued report from database')
       return reply.error('failed to fetch rqueued report from database')
@@ -104,13 +108,13 @@ export default async function (fastify: FastifyInstance) {
    * Request a report to be queued
    * @route POST /api/{APP_VERSION}/ecommerce/reports/:id/queue
    */
-  fastify.get('/queue', async (request: FastifyRequest<{
+  fastify.post('/:id/queue', async (request: FastifyRequest<{
     Params: {
       id: number
     }, Querystring: {
       mode: string
       type: string
-      usercode: number
+      usercode?: number
       customer_id?: number
       address_id?: number
       culture?: string
@@ -120,9 +124,9 @@ export default async function (fastify: FastifyInstance) {
       const pool = await fastify.getSqlPool()
       const repo = new ReportRepository(request.log, pool)
       const id = +request.params.id
-      const mode = request.query.mode
-      const type = +request.query.type
-      const usercode = +request.query.usercode
+      const mode: string = request.query.mode
+      const type: string = request.query.type
+      const usercode = request.query.usercode
       const customer_id = request.query.customer_id || 0
       const address_id = request.query.address_id || 0
       const culture = request.query.culture ?? 'nl'
@@ -137,6 +141,8 @@ export default async function (fastify: FastifyInstance) {
       return reply.success(data)
     } catch (err) {
       request.log.error({ err }, 'Failed to create department in database')
+      if (err?.message)
+        return reply.error(err.message)
       return reply.error('failed to fetch create in database')
     }
   })
@@ -149,14 +155,14 @@ export default async function (fastify: FastifyInstance) {
     Params: {
       uuid: string
     }, Querystring: {
-      usercode: number
+      usercode?: number
     }
   }>, reply: FastifyReply) => {
     try {
       const pool = await fastify.getSqlPool()
       const repo = new ReportRepository(request.log, pool)
       const uuid = request.params.uuid
-      const usercode = +request.query.usercode
+      const usercode = request.query.usercode
 
       request.log.debug({}, 'delete department')
       const data = await repo.deleteQueuedReport(uuid, usercode)
