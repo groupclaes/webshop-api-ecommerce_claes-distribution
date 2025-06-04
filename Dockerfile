@@ -1,5 +1,5 @@
 # ---- Deps ----
-FROM groupclaes/esbuild:v0.24.0 AS depedencies
+FROM groupclaes/esbuild:v0.25.0 AS depedencies
 # change the working directory to new exclusive app folder
 WORKDIR /usr/src/app
 # copy package file
@@ -17,7 +17,7 @@ RUN npm install
 RUN esbuild ./index.ts --bundle --platform=node --minify --packages=external --external:'./config' --outfile=index.min.js
 
 # --- release ---
-FROM groupclaes/node:20
+FROM groupclaes/node:22
 # change the working directory to new exclusive app folder
 WORKDIR /usr/src/app
 # copy dependencies

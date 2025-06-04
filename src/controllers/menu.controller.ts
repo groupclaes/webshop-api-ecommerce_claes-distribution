@@ -4,7 +4,7 @@ import sql from 'mssql'
 
 import Categories from '../repositories/categories.repository'
 
-export default async function (fastify: FastifyInstance) {
+export default async function(fastify: FastifyInstance) {
   fastify.get('', async (request: FastifyRequest<{
     Querystring: {
       usercode?: number
@@ -21,6 +21,7 @@ export default async function (fastify: FastifyInstance) {
       const data = await repo.getTree(request.query.usercode, request.jwt?.sub, culture)
       return reply.success(data, 200, performance.now() - start)
     } catch (err) {
+      request.log.fatal({ err }, 'failed to get categories tree from database!')
       return reply.error('failed to get categories tree from database')
     }
   })
