@@ -12,9 +12,10 @@ export default class DepartmentRepository {
   }
 
   // Naming done by using CRUDL; create, read, update, delete and list
-  async list(usercode: number, user_id?: string, culture: string = 'nl'): Promise<any[]> {
+  async list(token: string, usercode: number, /* user_id?: string, */culture: string = 'nl'): Promise<any[]> {
     const r = new sql.Request(this._pool)
-    r.input('user_id', sql.Int, user_id)
+    // r.input('user_id', sql.Int, user_id)
+    r.input('token', sql.VarChar, token)
     r.input('usercode', sql.Int, usercode)
     r.input('culture', sql.VarChar, culture)
     const result = await r.execute(this.schema + 'usp_getDepartments').catch(err => {
@@ -29,9 +30,10 @@ export default class DepartmentRepository {
     return result.recordset.length > 0 ? result.recordset[0] : []
   }
 
-  async create(usercode: number, department: any, user_id?: string, culture: string = 'nl'): Promise<boolean> {
+  async create(token: string, usercode: number, department: any, /* user_id?: string, */culture: string = 'nl'): Promise<boolean> {
     const r = new sql.Request(this._pool)
-    r.input('user_id', sql.Int, user_id)
+    // r.input('user_id', sql.Int, user_id)
+    r.input('token', sql.VarChar, token)
     r.input('usercode', sql.Int, usercode)
     r.input('culture', sql.VarChar, culture)
     r.input('department_name', sql.VarChar, department.name)
@@ -47,9 +49,10 @@ export default class DepartmentRepository {
     return result.rowsAffected[0] > 0
   }
 
-  async update(usercode: number, id: number, department: any, user_id?: string, culture: string = 'nl'): Promise<boolean> {
+  async update(token: string, usercode: number, id: number, department: any, /* user_id?: string, */culture: string = 'nl'): Promise<boolean> {
     const r = new sql.Request(this._pool)
-    r.input('user_id', sql.Int, user_id)
+    // r.input('user_id', sql.Int, user_id)
+    r.input('token', sql.VarChar, token)
     r.input('id', sql.Int, id)
     r.input('usercode', sql.Int, usercode)
     r.input('culture', sql.VarChar, culture)
@@ -66,9 +69,10 @@ export default class DepartmentRepository {
     return result.rowsAffected[0] > 0
   }
 
-  async delete(usercode: number, id: number, user_id?: string, culture: string = 'nl'): Promise<boolean> {
+  async delete(token: string, usercode: number, id: number, /* user_id?: string, */culture: string = 'nl'): Promise<boolean> {
     const r = new sql.Request(this._pool)
-    r.input('user_id', sql.Int, user_id)
+    // r.input('user_id', sql.Int, user_id)
+    r.input('token', sql.VarChar, token)
     r.input('id', sql.Int, id)
     r.input('usercode', sql.Int, usercode)
     r.input('culture', sql.VarChar, culture)

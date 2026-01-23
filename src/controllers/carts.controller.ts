@@ -5,7 +5,7 @@ import oe from '@groupclaes/oe-connector'
 
 import Cart from '../repositories/carts.repository'
 
-export default async function (fastify: FastifyInstance) {
+export default async function cartsController(fastify: FastifyInstance) {
   fastify.get('', async (request: FastifyRequest<{
     Querystring: {
       usercode: number

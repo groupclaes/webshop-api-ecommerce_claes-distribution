@@ -1,5 +1,5 @@
 # ---- Deps ----
-FROM groupclaes/esbuild:v0.25.0 AS depedencies
+FROM groupclaes/esbuild:v0.25.4 AS depedencies
 # change the working directory to new exclusive app folder
 WORKDIR /usr/src/app
 # copy package file

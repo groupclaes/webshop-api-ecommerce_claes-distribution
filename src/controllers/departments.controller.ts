@@ -16,8 +16,8 @@ export default async function (fastify: FastifyInstance) {
     }
   }>, reply: FastifyReply) => {
     try {
-      if (!request.jwt)
-        return reply.error('missing jwt!', 401)
+      // if (!request.jwt)
+      //   return reply.error('missing jwt!', 401)
 
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
@@ -47,8 +47,8 @@ export default async function (fastify: FastifyInstance) {
     }
   }>, reply: FastifyReply) => {
     try {
-      if (!request.jwt)
-        return reply.error('missing jwt!', 401)
+      // if (!request.jwt)
+      //   return reply.error('missing jwt!', 401)
 
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
@@ -78,8 +78,8 @@ export default async function (fastify: FastifyInstance) {
     }
   }>, reply: FastifyReply) => {
     try {
-      if (!request.jwt)
-        return reply.error('missing jwt!', 401)
+      // if (!request.jwt)
+      //   return reply.error('missing jwt!', 401)
 
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
@@ -108,8 +108,8 @@ export default async function (fastify: FastifyInstance) {
     }
   }>, reply: FastifyReply) => {
     try {
-      if (!request.jwt)
-        return reply.error('missing jwt!', 401)
+      // if (!request.jwt)
+      //   return reply.error('missing jwt!', 401)
 
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
