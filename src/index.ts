@@ -9,8 +9,9 @@ import menuController from './controllers/menu.controller'
 import oldreportsController from './controllers/old-reports.controller'
 import statisticsController from './controllers/statistics.controller'
 import { NewsController } from './controllers/news.controller'
+import departmentsController from './controllers/departments.controller'
 
-const LOGLEVEL = 'debug'
+const LOGLEVEL = 'info'
 
 export default async function start(config: any): Promise<FastifyInstance | undefined> {
   let fastify: FastifyInstance | undefined = undefined
@@ -56,6 +57,12 @@ export default async function start(config: any): Promise<FastifyInstance | unde
     fastify.log.debug(`registering controller 'news' for url '${version_prefix}/${config.wrapper.serviceName}/news'`)
     await fastify.register(NewsController.register, {
       prefix: `${version_prefix}/${config.wrapper.serviceName}/news`,
+      logLevel: LOGLEVEL
+    })
+
+    fastify.log.debug(`registering controller 'departments' for url '${version_prefix}/${config.wrapper.serviceName}/departments'`)
+    await fastify.register(departmentsController, {
+      prefix: `${version_prefix}/${config.wrapper.serviceName}/departments`,
       logLevel: LOGLEVEL
     })
     await fastify.listen({ port: +(env['PORT'] ?? 80), host: '::' })
