@@ -12,12 +12,11 @@ export default class DepartmentRepository {
   }
 
   // Naming done by using CRUDL; create, read, update, delete and list
-  async list(token: string, usercode: number, /* user_id?: string, */culture: string = 'nl'): Promise<any[]> {
+  async list(token: string, usercode: string, /* user_id?: string, */): Promise<any[]> {
     const r = new sql.Request(this._pool)
     // r.input('user_id', sql.Int, user_id)
     r.input('token', sql.VarChar, token)
     r.input('usercode', sql.Int, usercode)
-    r.input('culture', sql.VarChar, culture)
     const result = await r.execute(this.schema + 'usp_getDepartments').catch(err => {
       this._logger.error({ err }, 'error while executing sql procedure')
     })
@@ -25,18 +24,17 @@ export default class DepartmentRepository {
     if (!result)
       return []
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_getDepartments result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_getDepartments result`)
 
     return result.recordset.length > 0 ? result.recordset[0] : []
   }
 
-  async create(token: string, usercode: number, department: any, /* user_id?: string, */culture: string = 'nl'): Promise<boolean> {
+  async create(token: string, usercode: string, department: any, /* user_id?: string, */): Promise<boolean> {
     const r = new sql.Request(this._pool)
     // r.input('user_id', sql.Int, user_id)
     r.input('token', sql.VarChar, token)
     r.input('usercode', sql.Int, usercode)
-    r.input('culture', sql.VarChar, culture)
-    r.input('department_name', sql.VarChar, department.name)
+    r.input('data_name', sql.VarChar, department.name)
     const result = await r.execute(this.schema + 'usp_createDepartment').catch(err => {
       this._logger.error({ err }, 'error while executing sql procedure')
     })
@@ -44,19 +42,18 @@ export default class DepartmentRepository {
     if (!result)
       return false
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_createDepartment result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_createDepartment result`)
 
     return result.rowsAffected[0] > 0
   }
 
-  async update(token: string, usercode: number, id: number, department: any, /* user_id?: string, */culture: string = 'nl'): Promise<boolean> {
+  async update(token: string, usercode: string, id: number, department: any, /* user_id?: string, */): Promise<boolean> {
     const r = new sql.Request(this._pool)
     // r.input('user_id', sql.Int, user_id)
     r.input('token', sql.VarChar, token)
-    r.input('id', sql.Int, id)
     r.input('usercode', sql.Int, usercode)
-    r.input('culture', sql.VarChar, culture)
-    r.input('department_name', sql.VarChar, department.name)
+    r.input('id', sql.Int, id)
+    r.input('data_name', sql.VarChar, department.name)
     const result = await r.execute(this.schema + 'usp_updateDepartment').catch(err => {
       this._logger.error({ err }, 'error while executing sql procedure')
     })
@@ -64,18 +61,17 @@ export default class DepartmentRepository {
     if (!result)
       return false
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_updateDepartment result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_updateDepartment result`)
 
     return result.rowsAffected[0] > 0
   }
 
-  async delete(token: string, usercode: number, id: number, /* user_id?: string, */culture: string = 'nl'): Promise<boolean> {
+  async delete(token: string, usercode: string, id: number, /* user_id?: string, */): Promise<boolean> {
     const r = new sql.Request(this._pool)
     // r.input('user_id', sql.Int, user_id)
     r.input('token', sql.VarChar, token)
-    r.input('id', sql.Int, id)
     r.input('usercode', sql.Int, usercode)
-    r.input('culture', sql.VarChar, culture)
+    r.input('id', sql.Int, id)
     const result = await r.execute(this.schema + 'usp_deleteDepartment').catch(err => {
       this._logger.error({ err }, 'error while executing sql procedure')
     })
@@ -83,7 +79,47 @@ export default class DepartmentRepository {
     if (!result)
       return false
 
-    this._logger.debug({ result }, `Exeecuting procedure ${this.schema}usp_deleteDepartment result`)
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_deleteDepartment result`)
+
+    return result.rowsAffected[0] > 0
+  }
+
+  async createProduct(token: string, usercode: string, id: number, product_id: number): Promise<boolean> {
+    const r = new sql.Request(this._pool)
+    // r.input('user_id', sql.Int, user_id)
+    r.input('token', sql.VarChar, token)
+    r.input('usercode', sql.Int, usercode)
+    r.input('id', sql.Int, id)
+    r.input('mode', sql.VarChar, 'add')
+    r.input('product_id', sql.Int, product_id)
+    const result = await r.execute(this.schema + 'usp_updateDepartmentProducts').catch(err => {
+      this._logger.error({ err }, 'error while executing sql procedure')
+    })
+
+    if (!result)
+      return false
+
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_updateDepartmentProducts result`)
+
+    return result.rowsAffected[0] > 0
+  }
+
+  async deleteProduct(token: string, usercode: string, id: number, product_id: number): Promise<boolean> {
+    const r = new sql.Request(this._pool)
+    // r.input('user_id', sql.Int, user_id)
+    r.input('token', sql.VarChar, token)
+    r.input('usercode', sql.Int, usercode)
+    r.input('id', sql.Int, id)
+    r.input('mode', sql.VarChar, 'remove')
+    r.input('product_id', sql.Int, product_id)
+    const result = await r.execute(this.schema + 'usp_updateDepartmentProducts').catch(err => {
+      this._logger.error({ err }, 'error while executing sql procedure')
+    })
+
+    if (!result)
+      return false
+
+    this._logger.debug({ result }, `Executing procedure ${this.schema}usp_updateDepartmentProducts result`)
 
     return result.rowsAffected[0] > 0
   }

@@ -1,37 +1,35 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { JWTPayload } from 'jose'
-import sql from 'mssql'
 
 import DepartmentRepository from '../repositories/department.repository'
 
-export default async function (fastify: FastifyInstance) {
+export default async function departmentsController(fastify: FastifyInstance) {
   /**
    * Get all departments for current user
    * @route GET /api/{APP_VERSION}/ecommerce/departments
    */
-  fastify.get('', async (request: FastifyRequest<{
+  fastify.get('', async function listDepartments(request: FastifyRequest<{
     Querystring: {
-      usercode: number
+      token: string
+      usercode: string
       culture?: string
     }
-  }>, reply: FastifyReply) => {
+  }>, reply: FastifyReply) {
+    const start = performance.now()
     try {
       // if (!request.jwt)
       //   return reply.error('missing jwt!', 401)
 
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
-      const usercode = +request.query.usercode
       const culture = request.query.culture ?? 'nl'
 
-      request.log.debug({}, 'fetching departments')
-      const data = await repo.list(usercode, request.jwt.sub, culture)
+      const data = await repo.list(request.query.token, request.query.usercode, culture)
 
       request.log.debug({ departments_length: data?.length }, 'fetched departments')
-      return reply.success(data)
+      reply.success(data, undefined, performance.now() - start)
     } catch (err) {
       request.log.error({ err }, 'Failed to fetch departments from database')
-      return reply.error('failed to fetch departments from database')
+      reply.error('failed to fetch departments from database')
     }
   })
 
@@ -39,28 +37,28 @@ export default async function (fastify: FastifyInstance) {
    * Get all departments for current user
    * @route POST /api/{APP_VERSION}/ecommerce/departments
    */
-  fastify.post('', async (request: FastifyRequest<{
+  fastify.post('', async function createDepartment(request: FastifyRequest<{
     Querystring: {
-      usercode: number
+      token: string
+      usercode: string
     }, Body: {
       name: string
     }
-  }>, reply: FastifyReply) => {
+  }>, reply: FastifyReply) {
+    const start = performance.now()
     try {
       // if (!request.jwt)
       //   return reply.error('missing jwt!', 401)
 
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
-      const usercode = +request.query.usercode
       const department = request.body
 
-      request.log.debug({}, 'create department')
-      const data = await repo.create(usercode, department, request.jwt.sub)
-      return reply.success(data)
+      const data = await repo.create(request.query.token, request.query.usercode, department)
+      reply.success(data, undefined, performance.now() - start)
     } catch (err) {
       request.log.error({ err }, 'Failed to create department in database')
-      return reply.error('failed to fetch create in database')
+      reply.error('failed to fetch create in database')
     }
   })
 
@@ -68,15 +66,17 @@ export default async function (fastify: FastifyInstance) {
    * Get all departments for current user
    * @route PUT /api/{APP_VERSION}/ecommerce/departments/:id
    */
-  fastify.put('/:id', async (request: FastifyRequest<{
+  fastify.put('/:id', async function updateDepartment(request: FastifyRequest<{
     Params: {
       id: number
     }, Querystring: {
-      usercode: number
+      token: string
+      usercode: string
     }, Body: {
       name: string
     }
-  }>, reply: FastifyReply) => {
+  }>, reply: FastifyReply) {
+    const start = performance.now()
     try {
       // if (!request.jwt)
       //   return reply.error('missing jwt!', 401)
@@ -84,15 +84,13 @@ export default async function (fastify: FastifyInstance) {
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
       const id = request.params.id
-      const usercode = +request.query.usercode
       const department = request.body
 
-      request.log.debug({}, 'update department')
-      const data = await repo.update(usercode, id, department, request.jwt.sub)
-      return reply.success(data)
+      const data = await repo.update(request.query.token, request.query.usercode, id, department)
+      reply.success(data, undefined, performance.now() - start)
     } catch (err) {
       request.log.error({ err }, 'Failed to update department in database')
-      return reply.error('failed to fetch update in database')
+      reply.error('failed to fetch update in database')
     }
   })
 
@@ -100,13 +98,15 @@ export default async function (fastify: FastifyInstance) {
    * Delete department with user
    * @route DELETE /api/{APP_VERSION}/ecommerce/departments/:id
    */
-  fastify.delete('/:id', async (request: FastifyRequest<{
+  fastify.delete('/:id', async function deleteDepartment(request: FastifyRequest<{
     Params: {
       id: number
     }, Querystring: {
-      usercode: number
+      token: string
+      usercode: string
     }
-  }>, reply: FastifyReply) => {
+  }>, reply: FastifyReply) {
+    const start = performance.now()
     try {
       // if (!request.jwt)
       //   return reply.error('missing jwt!', 401)
@@ -114,15 +114,75 @@ export default async function (fastify: FastifyInstance) {
       const pool = await fastify.getSqlPool()
       const repo = new DepartmentRepository(request.log, pool)
       const id = request.params.id
-      const usercode = +request.query.usercode
       const department = request.body
 
-      request.log.debug({}, 'delete department')
-      const data = await repo.update(usercode, id, department, request.jwt.sub)
-      return reply.success(data)
+      const data = await repo.update(request.query.token, request.query.usercode, id, department)
+      reply.success(data, undefined, performance.now() - start)
     } catch (err) {
       request.log.error({ err }, 'Failed to delete department in database')
-      return reply.error('failed to fetch delete in database')
+      reply.error('failed to fetch delete in database')
+    }
+  })
+
+  /**
+   * Get all departments for current user
+   * @route POST /api/{APP_VERSION}/ecommerce/departments/:id/products/:product_id
+   */
+  fastify.post('/:id/products/:product_id', async function createDepartment(request: FastifyRequest<{
+    Params: {
+      id: number
+      product_id: number
+    }, Querystring: {
+      token: string
+      usercode: string
+    }
+  }>, reply: FastifyReply) {
+    const start = performance.now()
+    try {
+      // if (!request.jwt)
+      //   return reply.error('missing jwt!', 401)
+
+      const pool = await fastify.getSqlPool()
+      const repo = new DepartmentRepository(request.log, pool)
+      const id = request.params.id
+      const product_id = request.params.product_id
+
+      const data = await repo.createProduct(request.query.token, request.query.usercode, id, product_id)
+      reply.success(data, undefined, performance.now() - start)
+    } catch (err) {
+      request.log.error({ err }, 'Failed to add product to department in database')
+      reply.error('failed to add product to department in database')
+    }
+  })
+
+  /**
+   * Delete department with user
+   * @route DELETE /api/{APP_VERSION}/ecommerce/departments/:id/products/:product_id
+   */
+  fastify.delete('/:id/products/:product_id', async function deleteDepartment(request: FastifyRequest<{
+    Params: {
+      id: number
+      product_id: number
+    }, Querystring: {
+      token: string
+      usercode: string
+    }
+  }>, reply: FastifyReply) {
+    const start = performance.now()
+    try {
+      // if (!request.jwt)
+      //   return reply.error('missing jwt!', 401)
+
+      const pool = await fastify.getSqlPool()
+      const repo = new DepartmentRepository(request.log, pool)
+      const id = request.params.id
+      const product_id = request.params.product_id
+
+      const data = await repo.deleteProduct(request.query.token, request.query.usercode, id, product_id)
+      reply.success(data, undefined, performance.now() - start)
+    } catch (err) {
+      request.log.error({ err }, 'Failed to remove product from department in database')
+      reply.error('failed to fetch remove product from department in database')
     }
   })
 }
