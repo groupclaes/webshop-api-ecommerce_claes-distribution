@@ -19,7 +19,7 @@ export default async function start(config: any): Promise<FastifyInstance | unde
     if (!config.wrapper.mssql && config.mssql) {
       config.wrapper.mssql = config.mssql
     }
-
+    config.wrapper.cors = { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }
     config.wrapper.jwt = {}
 
     const fastify = await Fastify(config.wrapper)

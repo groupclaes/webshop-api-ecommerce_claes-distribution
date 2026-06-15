@@ -1,7 +1,9 @@
 import sql from 'mssql'
 import { FastifyBaseLogger } from 'fastify'
+import axios from 'axios'
+
 const config = require('./config')
-const fetch = require('httpntlm')
+const kerberos = require('kerberos')
 
 export default class OldReportRepository {
   schema: string = 'ecommerce.'
@@ -193,47 +195,52 @@ export default class OldReportRepository {
   async startQueuedJob(uuid, uri) {
     return new Promise(async (resolve, reject) => {
       try {
-        fetch.get({
-          url: uri,
-          username: config.ssrs.username,
-          password: config.ssrs.password,
-          workstation: config.ssrs.workstation,
-          domain: config.ssrs.domain,
-          binary: true
-        }, async (err, res) => {
-          if (err) {
-            console.error(err)
-            reject(err)
-            return
-          }
+        const client =
+          await kerberos.initializeClient(
+            'HTTP/ssrs.groupclaes.be'
+          )
 
-          if (res.statusCode !== 200) {
-            reject('statuscode was: ' + res.statusCode)
-            console.error('statuscode was: ' + res.statusCode, uri)
-            return
-          }
+        const token = await client.step('')
 
-          /** @type {Buffer} file */
-          const file = res.body
-
-          const request = new sql.Request(this._pool)
-          request.input('uuid', sql.UniqueIdentifier, uuid)
-          request.input('content', sql.VarBinary, file)
-          request.input('mimeType', sql.VarChar, res.headers['content-type'])
-          request.input('size', sql.Int, file.length)
-          const result = await request.execute(`UpdateQueuedReportContent`)
-          if (result.recordset.length > 0) {
-            const report = result.recordset[0]
-            resolve({
-              success: report.message === 'Ok'
-            })
-          } else {
-            const { error } = result.recordsets[1][0]
-            if (error) {
-              reject(new Error(error))
+        const res = await axios.get(
+          uri,
+          {
+            responseType: 'arraybuffer',
+            headers: {
+              Authorization: `Negotiate ${token}`
             }
           }
-        })
+        )
+
+        console.log(res.status)
+
+
+        if (res.status !== 200) {
+          reject('statuscode was: ' + res.status)
+          console.error('statuscode was: ' + res.status, uri)
+          return
+        }
+
+        /** @type {Buffer} file */
+        const file = Buffer.from(res.data)
+
+        const request = new sql.Request(this._pool)
+        request.input('uuid', sql.UniqueIdentifier, uuid)
+        request.input('content', sql.VarBinary, file)
+        request.input('mimeType', sql.VarChar, res.headers['content-type'])
+        request.input('size', sql.Int, file.length)
+        const result = await request.execute(`UpdateQueuedReportContent`)
+        if (result.recordset.length > 0) {
+          const report = result.recordset[0]
+          resolve({
+            success: report.message === 'Ok'
+          })
+        } else {
+          const { error } = result.recordsets[1][0]
+          if (error) {
+            reject(new Error(error))
+          }
+        }
       } catch (err) {
         reject(err)
       }

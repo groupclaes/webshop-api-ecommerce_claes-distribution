@@ -1,5 +1,25 @@
 # ---- Deps ----
 FROM groupclaes/esbuild:v0.25.4 AS depedencies
+
+USER root
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    krb5 \
+    krb5-dev \
+    krb5-libs \
+    krb5-conf
+
+USER node
+#RUN ln -sf /usr/bin/python3 /usr/bin/python
+
+ENV PYTHON=/usr/bin/python3
+ENV npm_config_python=/usr/bin/python3
+
+RUN python3 --version
+RUN which python3
+
 # change the working directory to new exclusive app folder
 WORKDIR /usr/src/app
 # copy package file
@@ -18,11 +38,25 @@ RUN esbuild ./index.ts --bundle --platform=node --minify --packages=external --e
 
 # --- release ---
 FROM groupclaes/node:22
+# Kerberos install
+USER root
+RUN apk add --no-cache \
+    krb5 \
+    krb5-libs \
+    krb5-conf
+COPY --chown=root:root krb5.conf /etc/krb5.conf
+COPY --chown=root:root svc_reports.keytab /secrets/svc_reports.keytab
+USER node
+
 # change the working directory to new exclusive app folder
 WORKDIR /usr/src/app
 # copy dependencies
 COPY --chown=node:node --from=depedencies /usr/src/app ./
 # copy project file
 COPY --chown=node:node --from=build /usr/src/app/index.min.js ./
-# command to run when intantiate an image
-CMD ["node","index.min.js"]
+# add entrypoint command and script
+USER root
+COPY entrypoint.sh ./
+RUN chmod +x ./entrypoint.sh
+USER node
+ENTRYPOINT ["./entrypoint.sh"]
