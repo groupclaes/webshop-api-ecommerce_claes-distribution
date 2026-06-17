@@ -197,7 +197,7 @@ export default class OldReportRepository {
       try {
         const client =
           await kerberos.initializeClient(
-            'HTTP/ssrs.groupclaes.be'
+            'HTTP@ssrs.groupclaes.be'
           )
 
         const token = await client.step('')
@@ -212,9 +212,6 @@ export default class OldReportRepository {
           }
         )
 
-        console.log(res.status)
-
-
         if (res.status !== 200) {
           reject('statuscode was: ' + res.status)
           console.error('statuscode was: ' + res.status, uri)
@@ -227,7 +224,7 @@ export default class OldReportRepository {
         const request = new sql.Request(this._pool)
         request.input('uuid', sql.UniqueIdentifier, uuid)
         request.input('content', sql.VarBinary, file)
-        request.input('mimeType', sql.VarChar, res.headers['content-type'])
+        request.input('mimeType', sql.VarChar, res.headers['Content-Type'])
         request.input('size', sql.Int, file.length)
         const result = await request.execute(`UpdateQueuedReportContent`)
         if (result.recordset.length > 0) {

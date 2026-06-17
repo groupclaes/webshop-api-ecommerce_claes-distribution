@@ -40,12 +40,9 @@ RUN esbuild ./index.ts --bundle --platform=node --minify --packages=external --e
 FROM groupclaes/node:22
 # Kerberos install
 USER root
-RUN apk add --no-cache \
-    krb5 \
-    krb5-libs \
-    krb5-conf
-COPY --chown=root:root krb5.conf /etc/krb5.conf
-COPY --chown=root:root svc_reports.keytab /secrets/svc_reports.keytab
+RUN apk add --no-cache krb5
+COPY --chown=node:node krb5.conf /etc/krb5.conf
+COPY --chown=node:node svc_reports.keytab /tmp/svc_reports.keytab
 USER node
 
 # change the working directory to new exclusive app folder
